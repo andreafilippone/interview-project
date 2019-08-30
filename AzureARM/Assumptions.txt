@@ -1,0 +1,8 @@
+Assumptions:
+Since the Azure App Service is a trusted Azure Service it is able to comunicate with Azure DataLake and Azure KeyVault just by enablling a functionality.
+For the authentication I assumed to use a Service Principal.
+For the load balancer I used the Application Gataway since is better suited for Web App.
+Also I didn't think it was necessary to connect every service to our VNET since it was already empty.
+
+I did several templates dividing most of the elements to maintain a the code as clean and readeble as possible.
+

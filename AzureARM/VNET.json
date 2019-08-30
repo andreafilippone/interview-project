@@ -1,0 +1,102 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "virtualNetworksName": {
+            "type": "string",
+            "metadata":{
+                "description":"Virtual Network Name"
+             }
+        },
+        "virtualNetworkSubnetName": {
+            "type": "string",
+            "metadata":{
+                "description":"Virtual Network Subnet Name"
+             }
+        },
+        "vnetPrefix": {
+            "type": "string",
+            "metadata":{
+                "description":"Virtual Network Perfix ex 10.0.0.0/24"
+             }
+        },
+        "subnetPrefix": {
+            "type": "string",
+            "metadata":{
+                "description":"Subnet Perfix ex 10.0.0.0/25"
+             }
+        },
+        "departmentName": {
+            "type": "string",
+            "metadata": {
+              "description": "Department Tag"
+            }
+        },
+        "projectName": {
+            "type": "string",
+            "metadata": {
+              "description": "Project Tag"
+            }
+        },
+        "createdBy": {
+            "type": "string",
+            "metadata": {
+              "description": "Created By Tag"
+            }
+        }
+        
+    },
+    "variables": {
+        "vnet_id":"[concat(parameters('virtualNetworksName'), '/')]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Network/virtualNetworks",
+            "apiVersion": "2019-06-01",
+            "name": "[parameters('virtualNetworksName')]",
+            "location": "westeurope",
+            "tags": {
+                "Department": "[parameters('departmentName')]",
+                "Application": "[parameters('projectName')]",
+                "Created By": "[parameters('createdBy')]"
+            },
+            "properties": {
+                "provisioningState": "Succeeded",
+                "resourceGuid": "cb0544da-8341-4482-ab38-751ab186c27e",
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "[parameters('subnetPrefix')]"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "[parameters('virtualNetworkSubnetName')]",
+                        "properties": {
+                            "provisioningState": "Succeeded",
+                            "addressPrefix": "[parameters('subnetPrefix')]",
+                            "privateEndpointNetworkPolicies": "Enabled",
+                            "privateLinkServiceNetworkPolicies": "Enabled"
+                        }
+                    }
+                ],
+                "virtualNetworkPeerings": [],
+                "enableDdosProtection": false,
+                "enableVmProtection": false
+            }
+        },
+        {
+            "type": "Microsoft.Network/virtualNetworks/subnets",
+            "apiVersion": "2019-06-01",
+            "name": "[concat(variables('vnet_id'), parameters('virtualNetworkSubnetName'))]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworksName'))]"
+            ],
+            "properties": {
+                "provisioningState": "Succeeded",
+                "addressPrefix": "[parameters('subnetPrefix')]",
+                "privateEndpointNetworkPolicies": "Enabled",
+                "privateLinkServiceNetworkPolicies": "Enabled"
+            }
+        }
+    ]
+}

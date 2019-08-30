@@ -1,0 +1,162 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "siteName": {
+        "type": "string",
+        "metadata":{
+            "description":"Site Name"
+         }
+      },
+      "hostingPlanName": {
+        "type": "string",
+        "metadata":{
+            "description":"Hosting Plan Name"
+         }
+      },
+      "sku": {
+        "type": "string",
+        "allowedValues": [
+          "F1",
+          "D1",
+          "B1",
+          "B2",
+          "B3",
+          "S1",
+          "S2",
+          "S3",
+          "P1",
+          "P2",
+          "P3",
+          "P4"
+        ],
+        "defaultValue": "S1",
+        "metadata":{
+            "description":"SKU Type"
+         }
+      },
+      "workerSize": {
+        "type": "string",
+        "allowedValues": [
+          "0",
+          "1",
+          "2"
+        ],
+        "defaultValue": "0",
+        "metadata":{
+            "description":"Worker Size"
+         }
+      },
+      "repoURL": {
+        "type": "string",
+        "metadata":{
+            "description":"Repository URL"
+         }
+      },
+      "branch": {
+        "type": "string",
+        "metadata":{
+            "description":"Repository Branch"
+         }
+      },
+      "departmentName": {
+        "type": "string",
+        "metadata": {
+          "description": "Department Tag"
+        }
+      },
+      "projectName": {
+          "type": "string",
+          "metadata": {
+            "description": "Project Tag"
+          }
+      },
+      "createdBy": {
+          "type": "string",
+          "metadata": {
+            "description": "Created By Tag"
+          }
+      },
+      "ipGateway":{
+        "type": "string",
+        "metadata": {
+          "description": "Ip gateway"
+        }
+      }
+    },
+    "variables": {
+      "location":"[resourceGroup().location]"
+        },
+    "resources": [
+      {
+        "apiVersion": "2015-08-01",
+        "name": "[parameters('hostingPlanName')]",
+        "type": "Microsoft.Web/serverfarms",
+        "location": "[variables('location')]",
+        "tags": {
+          "Department": "[parameters('departmentName')]",
+          "Application": "[parameters('projectName')]",
+          "Created By": "[parameters('createdBy')]"
+        },
+        "sku": {
+          "name": "[parameters('sku')]",
+          "capacity": "[parameters('workerSize')]"
+        },
+        "properties": {
+          "name": "[parameters('hostingPlanName')]"
+        }
+      },
+      {
+        "apiVersion": "2015-08-01",
+        "name": "[parameters('siteName')]",
+        "type": "Microsoft.Web/sites",
+        "location": "[variables('location')]",
+        "tags": {
+          "Department": "[parameters('departmentName')]",
+          "Application": "[parameters('projectName')]",
+          "Created By": "[parameters('createdBy')]"
+        },
+        "dependsOn": [
+          "[resourceId('Microsoft.Web/serverfarms', parameters('hostingPlanName'))]"
+        ],
+        "properties": {
+          "serverFarmId": "[parameters('hostingPlanName')]"
+        },
+        "resources": [
+          {
+            "apiVersion": "2015-08-01",
+            "name": "web",
+            "type": "sourcecontrols",
+            "dependsOn": [
+              "[resourceId('Microsoft.Web/Sites', parameters('siteName'))]"
+            ],
+            "properties": {
+              "RepoUrl": "[parameters('repoURL')]",
+              "branch": "[parameters('branch')]",
+              "IsManualIntegration": true
+            }
+          }
+        ]
+      },
+      {
+        "type": "Microsoft.Web/sites/config",
+        "apiVersion": "2016-08-01",
+        "name": "[concat(parameters('siteName'), '/web')]",
+        "location": "West Europe",
+        "dependsOn": [
+            "[resourceId('Microsoft.Web/sites', parameters('siteName'))]"
+        ],
+        "properties": {
+            "ipSecurityRestrictions": [
+                {
+                    "ipAddress": "[parameters('ipGateway')]",
+                    "subnetMask": "255.255.255.255",
+                    "name": "dasdasda"
+                }
+            ],
+            "http20Enabled": false,
+            "siteAuthEnabled": false
+        }
+    }
+    ]
+  }
